@@ -2,6 +2,7 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.kotlin.serialization)
 }
 
 android {
@@ -57,6 +58,9 @@ dependencies {
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
     debugImplementation(libs.androidx.compose.ui.tooling)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
+    // AGREGA ESTA LÍNEA para poder usar las funciones JSON
+    implementation(libs.kotlinx.serialization.json)
+
     // Core de Navigation 3 para lógica y UI [cite: 247]
     implementation(libs.androidx.navigation3.runtime)
     implementation(libs.androidx.navigation3.ui)
@@ -68,7 +72,7 @@ dependencies {
     implementation(libs.androidx.compose.material3.adaptive.navigation.suite)
 
     // Para layouts complejos como lista-detalle en tablets [cite: 638]
-    implementation(libs.androidx.compose.material3.adaptive.navigation3)
+    //implementation(libs.androidx.compose.material3.adaptive.navigation3)
 
     // Esencial para que las NavKeys sean serializables [cite: 251]
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.3")
