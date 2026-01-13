@@ -44,12 +44,26 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.petapp.AppContainer
 import com.example.petapp.R
 import com.example.petapp.ui.theme.PetAppTheme
 
 @Composable
-fun HomeScreen(onPetClick: (Int) -> Unit) {
-
+fun HomeScreen(
+    onPetClick: (Int) -> Unit,
+    //Crear el VM
+    viewModel: HomeScreenVM = viewModel(
+        factory = object : ViewModelProvider.Factory {
+            override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                return HomeScreenVM(AppContainer.getPetsUseCase) as T
+            }
+        }
+    )
+) {
+    val pets = viewModel.pets.value
     var searchText by remember { mutableStateOf("") }
 
     Column(
@@ -60,13 +74,13 @@ fun HomeScreen(onPetClick: (Int) -> Unit) {
     ) {
         SimpleSearchBar(data = searchText, onValueChange = { searchText = it })
         LazyColumn {
-            items(10) { index ->
+            items(pets.size) { index ->
                 PetCard(
-                    "Susy",
-                    "1 mes",
+                    pets[index].name,
+                    pets[index].age.toString(),
                     "Madrid",
-                    R.drawable.dog,
-                    onAdoptClick = { onPetClick(index) }
+                    pets[index].image,
+                    onAdoptClick = { onPetClick(pets[index].id) }
                 )
             }
         }
