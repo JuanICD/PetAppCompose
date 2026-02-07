@@ -1,35 +1,26 @@
 package com.example.petapp.ui.navigation
 
 // IMPORTS DE ANDROID Y COMPOSE
-import android.R
-import android.view.Surface
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.slideInHorizontally
-import androidx.compose.animation.slideOutHorizontally
-import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Info
-import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -53,68 +44,126 @@ import androidx.navigation3.ui.NavDisplay
 // IMPORTS DE KOTLIN SERIALIZATION
 import kotlinx.serialization.Serializable
 
-// IMPORTS DE TUS PANTALLAS (Asegúrate de que estas rutas sean correctas en tu proyecto)
+// IMPORTS DE TUS PANTALLAS
 import com.example.petapp.ui.screen.home.HomeScreen
-import com.example.petapp.ui.screen.add.AddPetScreen
+import com.example.petapp.ui.screen.favorites.FavoritesScreen
 import com.example.petapp.ui.screen.about.AboutScreen
-import java.nio.file.WatchEvent
-
-// import com.example.petapp.ui.screen.detail.DetailScreen // Descomenta si ya tienes esta pantalla
+import com.example.petapp.ui.screen.detail.DetailScreen
 
 // --- 1. DEFINICIÓN DE LAS LLAVES (RUTAS) ---
-// Usamos @Serializable porque rememberNavBackStack lo requiere para funcionar correctamente[cite: 436, 438].
 @Serializable
 data object Home : NavKey
 
 @Serializable
-data object AddPet : NavKey
+data object Favorites : NavKey
 
 @Serializable
 data object About : NavKey
 
 @Serializable
-data class PetDetail(val petId: Int) : NavKey
+data class PetDetail(val petName: String) : NavKey
 
-// --- 2. COMPOSABLE PRINCIPAL (NavManager) ---
+/**
+ * Composable principal que gestiona la navegación de la aplicación utilizando Navigation 3.
+ * Controla tres stacks independientes para Home, Favoritos e Info.
+ */
 @Composable
 fun MainScaffold() {
-    // Lógica de stacks y pestañas (igual que antes) [cite: 509, 538]
-    val homeStack = rememberNavBackStack(Home)
-    val addPetStack = rememberNavBackStack(AddPet)
-    val aboutStack = rememberNavBackStack(About)
+    // Definimos los stacks de navegación como estados mutables de listas de llaves (NavKey)
+    // Esto permite que al añadir o quitar llaves, la UI se actualice automáticamente.
+    var homeKeys by remember { mutableStateOf(listOf<NavKey>(Home)) }
+    var favoritesKeys by remember { mutableStateOf(listOf<NavKey>(Favorites)) }
+    var aboutKeys by remember { mutableStateOf(listOf<NavKey>(About)) }
+
+    // Creamos los objetos NavBackStack requeridos por NavDisplay para cada pestaña
+    val homeStack = rememberNavBackStack(*homeKeys.toTypedArray())
+    val favoritesStack = rememberNavBackStack(*favoritesKeys.toTypedArray())
+    val aboutStack = rememberNavBackStack(*aboutKeys.toTypedArray())
+    
+    // Estado para controlar qué pestaña está activa actualmente
     var currentTab by remember { mutableStateOf<NavKey>(Home) }
 
+    // Seleccionamos el stack y las llaves correspondientes a la pestaña activa
     val currentStack = when (currentTab) {
         Home -> homeStack
-        AddPet -> addPetStack
+        Favorites -> favoritesStack
         About -> aboutStack
         else -> homeStack
     }
 
+    val currentKeys = when (currentTab) {
+        Home -> homeKeys
+        Favorites -> favoritesKeys
+        About -> aboutKeys
+        else -> homeKeys
+    }
+
+    // Función auxiliar para actualizar las llaves del stack actual (navegar hacia adelante)
+    val navigateTo: (NavKey) -> Unit = { newKey ->
+        when (currentTab) {
+            Home -> homeKeys = homeKeys + newKey
+            Favorites -> favoritesKeys = favoritesKeys + newKey
+            About -> aboutKeys = aboutKeys + newKey
+        }
+    }
+
+    // Función para navegar hacia atrás eliminando la última llave del stack
+    val navigateBack: () -> Unit = {
+        when (currentTab) {
+            Home -> if (homeKeys.size > 1) homeKeys = homeKeys.dropLast(1)
+            Favorites -> if (favoritesKeys.size > 1) favoritesKeys = favoritesKeys.dropLast(1)
+            About -> if (aboutKeys.size > 1) aboutKeys = aboutKeys.dropLast(1)
+        }
+    }
+
     Scaffold(
         bottomBar = {
-            // Usamos nuestro navbar personalizado aquí
+            // Barra de navegación personalizada
             CustomBottomNavBar(
                 currentTab = currentTab,
-                onTabSelected = { currentTab = it }
+                onTabSelect = { 
+                    // Si pulsamos la misma pestaña, volvemos a la raíz de ese stack
+                    if (currentTab == it) {
+                        when (it) {
+                            Home -> homeKeys = listOf(Home)
+                            Favorites -> favoritesKeys = listOf(Favorites)
+                            About -> aboutKeys = listOf(About)
+                        }
+                    }
+                    currentTab = it 
+                }
             )
         }
     ) { paddingValues ->
         Box(modifier = Modifier.padding(paddingValues)) {
+            // NavDisplay es el componente de Navigation 3 que renderiza la pantalla actual del stack
             NavDisplay(
                 backStack = currentStack,
-                onBack = { /* lógica */ },
+                onBack = navigateBack,
                 entryProvider = entryProvider {
+                    // Definición de destinos para el stack
                     entry<Home> {
-                        HomeScreen(onPetClick ={} )
+                        HomeScreen(onPetClick = { name ->
+                            // Al hacer clic en una mascota, añadimos PetDetail al stack de Home
+                            navigateTo(PetDetail(name))
+                        })
                     }
-                    entry<AddPet> {
-                        AddPetScreen(onSaved = {})
+                    entry<Favorites> {
+                        FavoritesScreen(onPetClick = { name ->
+                             // También permitimos navegar al detalle desde favoritos
+                             navigateTo(PetDetail(name))
+                        })
                     }
                     entry<About> {
                         AboutScreen()
                     }
-
+                    entry<PetDetail> { key ->
+                        // Pantalla de detalle que recibe el nombre de la mascota
+                        DetailScreen(
+                            petName = key.petName,
+                            onBack = navigateBack
+                        )
+                    }
                 }
             )
         }
@@ -124,13 +173,13 @@ fun MainScaffold() {
 @Composable
 fun CustomBottomNavBar(
     currentTab: NavKey,
-    onTabSelected: (NavKey) -> Unit
+    onTabSelect: (NavKey) -> Unit
 ) {
 
-    //Definir pestañas
-    val items = listOf(Home, AddPet, About)
+    // Definimos las 3 pestañas principales: Home, Favoritos y About
+    val items = listOf(Home, Favorites, About)
 
-    //Contenedor principal
+    // Contenedor principal de la barra de navegación
     Surface(
         modifier = Modifier
             .fillMaxWidth()
@@ -153,7 +202,7 @@ fun CustomBottomNavBar(
                 NavItem(
                     item = item,
                     isSelected = currentTab == item,
-                    onClick = { onTabSelected(item) }
+                    onClick = { onTabSelect(item) }
                 )
 
             }
@@ -203,7 +252,7 @@ fun NavItem(
 fun getIconFor(item: NavKey): ImageVector {
     return when (item) {
         Home -> Icons.Default.Home
-        AddPet -> Icons.Default.Add
+        Favorites -> Icons.Default.Favorite
         About -> Icons.Default.Info
         else -> Icons.Default.Home
     }
@@ -211,7 +260,7 @@ fun getIconFor(item: NavKey): ImageVector {
 fun getLabelFor(item:NavKey): String{
     return when(item){
         Home -> "Home"
-        AddPet -> "Add"
+        Favorites -> "Favoritos"
         About -> "Info"
         else -> "Inicio"
     }
@@ -224,6 +273,6 @@ fun getLabelFor(item:NavKey): String{
 fun PreviewCustomBottomNavBar() {
     CustomBottomNavBar(
         currentTab = Home,
-        onTabSelected = {}
+        onTabSelect = {}
     )
 }

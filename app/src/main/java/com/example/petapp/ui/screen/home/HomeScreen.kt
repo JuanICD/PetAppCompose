@@ -1,6 +1,5 @@
 package com.example.petapp.ui.screen.home
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -40,53 +39,78 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.petapp.AppContainer
-import com.example.petapp.R
+import coil.compose.AsyncImage
 import com.example.petapp.ui.theme.PetAppTheme
 
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.lazy.items
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.LaunchedEffect
+import com.example.petapp.data.Pet
+
+/**
+ * Pantalla principal que muestra la lista de todas las mascotas disponibles.
+ * Permite buscar mascotas por nombre, navegar a su detalle y adoptarlas.
+ * 
+ * @param onPetClick Función para manejar la navegación al detalle de una mascota.
+ * @param viewModel ViewModel que suministra los datos y lógica de la pantalla.
+ */
 @Composable
 fun HomeScreen(
-    onPetClick: (Int) -> Unit,
-    //Crear el VM
-    viewModel: HomeScreenVM = viewModel(
-        factory = object : ViewModelProvider.Factory {
-            override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                return HomeScreenVM(AppContainer.getPetsUseCase) as T
-            }
-        }
-    )
+    onPetClick: (String) -> Unit,
+    viewModel: HomeViewModel = viewModel()
 ) {
-    val pets = viewModel.pets.value
+    // Estado para el texto de búsqueda
     var searchText by remember { mutableStateOf("") }
+    // Observamos la lista de mascotas desde el ViewModel
+    val pets by viewModel.pets.collectAsState()
+
+    // Refrescamos la lista al entrar a la pantalla para reflejar cambios (como likes)
+    // Se usa LaunchedEffect para que solo se ejecute al componer la pantalla por primera vez
+    LaunchedEffect(Unit) {
+        viewModel.refreshPets()
+    }
 
     Column(
         modifier = Modifier
-            .padding(top = 30.dp)
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
     ) {
+        // Barra de búsqueda personalizada
         SimpleSearchBar(data = searchText, onValueChange = { searchText = it })
-        LazyColumn {
-            items(pets.size) { index ->
+        
+        // Lista vertical de mascotas filtrada por el texto de búsqueda
+        LazyColumn(
+            modifier = Modifier.fillMaxSize(),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            items(pets.filter { it.name.contains(searchText, ignoreCase = true) }) { pet ->
                 PetCard(
-                    pets[index].name,
-                    pets[index].age.toString(),
-                    "Madrid",
-                    pets[index].image,
-                    onAdoptClick = { onPetClick(pets[index].id) }
+                    name = pet.name,
+                    age = "${pet.age} años",
+                    location = pet.location,
+                    imageRes = pet.imageRes,
+                    // Al pulsar en la tarjeta navegamos al detalle
+                    onClick = { onPetClick(pet.name) },
+                    // Al pulsar en adoptar eliminamos la mascota de la vista
+                    onAdoptClick = { viewModel.adoptPet(pet.name) }
                 )
             }
         }
     }
 }
 
+/**
+ * Barra de búsqueda sencilla.
+ * 
+ * @param data Texto actual de búsqueda.
+ * @param onValueChange Callback cuando el texto cambia.
+ * @param modifier Modificador opcional para personalizar el componente.
+ */
 @Composable
 fun SimpleSearchBar(
     data: String,
@@ -124,106 +148,95 @@ fun SimpleSearchBar(
     )
 }
 
+/**
+ * Tarjeta que muestra un resumen de la información de una mascota.
+ * Rediseñada para ser clickable y navegar al detalle.
+ * 
+ * @param name Nombre de la mascota.
+ * @param age Edad formateada.
+ * @param location Ubicación de la mascota.
+ * @param imageRes ID del recurso de imagen.
+ * @param onClick Callback al pulsar la tarjeta para navegar.
+ * @param onAdoptClick Callback al pulsar el botón de Adoptar.
+ */
 @Composable
 fun PetCard(
     name: String,
     age: String,
     location: String,
     imageRes: Int,
+    onClick: () -> Unit,
     onAdoptClick: () -> Unit
 ) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .height(300.dp)
-            .padding(16.dp),
+            .height(320.dp)
+            .padding(horizontal = 16.dp, vertical = 8.dp)
+            .clickable { onClick() }, // Hacemos toda la tarjeta clickable para navegar
         shape = MaterialTheme.shapes.large,
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
     ) {
         Column {
+            // Contenedor de la imagen
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .weight(1f)
             ) {
-                Image(
-                    painter = painterResource(id = imageRes),
+                AsyncImage(
+                    model = imageRes,
                     contentDescription = "Foto de $name",
                     contentScale = ContentScale.Crop,
-                    modifier = Modifier.fillMaxSize(),
+                    modifier = Modifier.fillMaxSize()
                 )
-                Surface(
-                    modifier = Modifier
-                        .padding(12.dp)
-                        .align(Alignment.TopStart),
-                    shape = CircleShape,
-                    color = MaterialTheme.colorScheme.secondary
-                ) {
-                    Text(
-                        text = "DESTACADO",
-                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSecondary,
-                        fontWeight = FontWeight.Bold
-                    )
-                }
-                IconButton(
-                    onClick = {},
-                    modifier = Modifier
-                        .align(Alignment.TopEnd)
-                        .padding(12.dp)
-                        .background(
-                            color = Color.Black.copy(alpha = 0.5f),
-                            shape = CircleShape
-                        )
-                        .size(35.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Favorite,
-                        contentDescription = "Favorito",
-                        tint = Color(0xFFFF5252), // This could also be in theme if reused often
-                        modifier = Modifier.size(20.dp)
-                    )
-                }
             }
-            Row(
+            
+            // Contenedor de información y acciones
+            Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(16.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
+                    .padding(16.dp)
             ) {
-                Column {
-                    Text(
-                        text = "$name, $age",
-                        style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(
-                            imageVector = Icons.Default.LocationOn,
-                            contentDescription = null,
-                            tint = Color.Gray,
-                            modifier = Modifier.size(16.dp)
-                        )
-                        Spacer(modifier = Modifier.width(4.dp))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column {
                         Text(
-                            text = location,
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = Color.Gray
+                            text = "$name, $age",
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSurface
                         )
-                        Spacer(modifier = Modifier.weight(1f))
-                        Button(
-                            onClick = onAdoptClick,
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = MaterialTheme.colorScheme.primary
-                            ),
-                            shape = CircleShape
-                        ) {
-                            Text(text = "Adoptar")
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(
+                                imageVector = Icons.Default.LocationOn,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.secondary,
+                                modifier = Modifier.size(16.dp)
+                            )
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text(
+                                text = location,
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = Color.Gray
+                            )
                         }
+                    }
+                    
+                    // Botón de Adoptar (ahora elimina de la vista)
+                    Button(
+                        onClick = onAdoptClick,
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.primary
+                        ),
+                        shape = CircleShape
+                    ) {
+                        Text(text = "Adoptar")
                     }
                 }
             }
