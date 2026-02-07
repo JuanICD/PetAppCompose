@@ -12,8 +12,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.navigation3.ui.NavDisplay
-
 import com.example.petapp.ui.navigation.MainScaffold
 import com.example.petapp.ui.theme.PetAppTheme
 

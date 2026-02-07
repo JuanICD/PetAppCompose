@@ -12,7 +12,12 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.Card
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -32,25 +37,43 @@ import com.example.petapp.R
 /**
  * Pantalla de información sobre la aplicación.
  * Muestra una tarjeta de encabezado, una sección sobre nosotros e información técnica.
+ * 
+ * @param onBack Función para volver a la pantalla anterior.
  */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AboutScreen() {
-    LazyColumn {
-        item {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(10.dp)
-            ) {
-                HeaderCard()
-                aboutCard()
-                Text(
-                    text = "INFORMACIÓN TÉCNICA",
-                    modifier = Modifier.padding(start = 16.dp),
-                    style = MaterialTheme.typography.titleMedium,
-                    color = Color(0, 0, 0, 75)
-                )
-                technicalCard()
+fun AboutScreen(onBack: () -> Unit) {
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text(text = "Sobre Nosotros", fontWeight = FontWeight.Bold) },
+                navigationIcon = {
+                    IconButton(onClick = onBack) {
+                        Icon(imageVector = Icons.Default.ArrowBack, contentDescription = "Volver")
+                    }
+                }
+            )
+        }
+    ) { paddingValues ->
+        LazyColumn(
+            modifier = Modifier.padding(paddingValues)
+        ) {
+            item {
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(10.dp)
+                ) {
+                    HeaderCard()
+                    aboutCard()
+                    Text(
+                        text = "INFORMACIÓN TÉCNICA",
+                        modifier = Modifier.padding(start = 16.dp),
+                        style = MaterialTheme.typography.titleMedium,
+                        color = Color(0, 0, 0, 75)
+                    )
+                    technicalCard()
+                }
             }
         }
     }
@@ -154,5 +177,5 @@ fun technicalCard() {
 @Composable
 @Preview(showBackground = true)
 fun AboutScreenPreview() {
-    AboutScreen()
+    AboutScreen(onBack = {})
 }

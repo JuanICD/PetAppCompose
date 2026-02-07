@@ -1,6 +1,8 @@
 [versions]
 # Versión estable de Navigation 3
 nav3Core = "1.0.0"
+# Versión estable de Navigation Compose
+navigationCompose = "2.8.5"
 # Versión para el soporte de ViewModels en Nav3
 lifecycleViewmodelNav3 = "2.10.0-rc01"
 # Suite de navegación adaptativa de Material 3
@@ -21,6 +23,7 @@ composeBom = "2024.09.00"
 # Librerías principales de Navigation 3
 androidx-navigation3-runtime = { module = "androidx.navigation3:navigation3-runtime", version.ref = "nav3Core" }
 androidx-navigation3-ui = { module = "androidx.navigation3:navigation3-ui", version.ref = "nav3Core" }
+androidx-navigation-compose = { module = "androidx.navigation:navigation-compose", version.ref = "navigationCompose" }
 
 # Extensión para integrar ViewModels con el ciclo de vida de Nav3
 androidx-lifecycle-viewmodel-navigation3 = { module = "androidx.lifecycle:lifecycle-viewmodel-navigation3", version.ref = "lifecycleViewmodelNav3" }

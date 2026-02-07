@@ -69,21 +69,8 @@ dependencies {
     // AGREGA ESTA LÍNEA para poder usar las funciones JSON
     implementation(libs.kotlinx.serialization.json)
 
-    // Core de Navigation 3 para lógica y UI [cite: 247]
-    implementation(libs.androidx.navigation3.runtime)
-    implementation(libs.androidx.navigation3.ui)
-
-    // Soporte para manejar estados en ViewModels por cada destino [cite: 247, 395]
-    implementation(libs.androidx.lifecycle.viewmodel.navigation3)
-
-    // Para el Bottom Navigation adaptativo [cite: 120]
-    implementation(libs.androidx.compose.material3.adaptive.navigation.suite)
-
-    // Para layouts complejos como lista-detalle en tablets [cite: 638]
-    //implementation(libs.androidx.compose.material3.adaptive.navigation3)
-
-    // Esencial para que las NavKeys sean serializables [cite: 251]
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.3")
+    // Jetpack Navigation Compose
+    implementation(libs.androidx.navigation.compose)
 
     // Room
     implementation(libs.room.runtime)

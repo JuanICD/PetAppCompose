@@ -1,12 +1,9 @@
 package com.example.petapp.ui.screen.detail
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -140,31 +137,12 @@ fun DetailScreen(
 
                 Spacer(modifier = Modifier.weight(1f))
 
-                // Botón de Like y Adoptar
+                // Botón de Adoptar
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(16.dp),
+                    horizontalArrangement = Arrangement.Center,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    // Botón de Corazón: sin color al inicio, rojo si se pulsa (likes > 0)
-                    IconButton(
-                        onClick = { viewModel.addLike() },
-                        modifier = Modifier
-                            .size(64.dp)
-                            .background(
-                                color = MaterialTheme.colorScheme.surfaceVariant,
-                                shape = CircleShape
-                            )
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Favorite,
-                            contentDescription = "Dar Like",
-                            // Lógica de color: Sin color (Gris/Transparente) al inicio, Rojo si tiene likes
-                            tint = if (petData.likes > 0) Color.Red else Color.LightGray,
-                            modifier = Modifier.size(36.dp)
-                        )
-                    }
-
                     Button(
                         onClick = { /* Acción de adopción */ },
                         modifier = Modifier

@@ -15,28 +15,23 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.LocationOn
-import androidx.compose.material.icons.filled.Search
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
-import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
@@ -46,107 +41,73 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
 import com.example.petapp.ui.theme.PetAppTheme
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.lazy.items
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.LaunchedEffect
-import com.example.petapp.data.Pet
 
 /**
  * Pantalla principal que muestra la lista de todas las mascotas disponibles.
  * Permite buscar mascotas por nombre, navegar a su detalle y adoptarlas.
  * 
  * @param onPetClick Función para manejar la navegación al detalle de una mascota.
+ * @param onBack Función para volver a la pantalla anterior.
  * @param viewModel ViewModel que suministra los datos y lógica de la pantalla.
  */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HomeScreen(
+fun PetListScreen(
     onPetClick: (String) -> Unit,
-    viewModel: HomeViewModel = viewModel()
+    onBack: () -> Unit,
+    viewModel: PetListViewModel = viewModel()
 ) {
-    // Estado para el texto de búsqueda
-    var searchText by remember { mutableStateOf("") }
     // Observamos la lista de mascotas desde el ViewModel
     val pets by viewModel.pets.collectAsState()
 
-    // Refrescamos la lista al entrar a la pantalla para reflejar cambios (como likes)
-    // Se usa LaunchedEffect para que solo se ejecute al componer la pantalla por primera vez
+    // Refrescamos la lista al entrar a la pantalla para reflejar cambios
     LaunchedEffect(Unit) {
         viewModel.refreshPets()
     }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
-    ) {
-        // Barra de búsqueda personalizada
-        SimpleSearchBar(data = searchText, onValueChange = { searchText = it })
-        
-        // Lista vertical de mascotas filtrada por el texto de búsqueda
-        LazyColumn(
-            modifier = Modifier.fillMaxSize(),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text(text = "Nuestras Mascotas", fontWeight = FontWeight.Bold) },
+                navigationIcon = {
+                    IconButton(onClick = onBack) {
+                        Icon(imageVector = Icons.Default.ArrowBack, contentDescription = "Volver")
+                    }
+                }
+            )
+        }
+    ) { paddingValues ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+                .background(MaterialTheme.colorScheme.background)
         ) {
-            items(pets.filter { it.name.contains(searchText, ignoreCase = true) }) { pet ->
-                PetCard(
-                    name = pet.name,
-                    age = "${pet.age} años",
-                    location = pet.location,
-                    imageRes = pet.imageRes,
-                    // Al pulsar en la tarjeta navegamos al detalle
-                    onClick = { onPetClick(pet.name) },
-                    // Al pulsar en adoptar eliminamos la mascota de la vista
-                    onAdoptClick = { viewModel.adoptPet(pet.name) }
-                )
+            // Lista vertical de mascotas
+            LazyColumn(
+                modifier = Modifier.fillMaxSize(),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                items(pets) { pet ->
+                    PetCard(
+                        name = pet.name,
+                        age = "${pet.age} años",
+                        location = pet.location,
+                        imageRes = pet.imageRes,
+                        // Al pulsar en la tarjeta navegamos al detalle
+                        onClick = { onPetClick(pet.name) },
+                        // Al pulsar en adoptar eliminamos la mascota de la vista
+                        onAdoptClick = { viewModel.adoptPet(pet.name) }
+                    )
+                }
             }
         }
     }
 }
 
-/**
- * Barra de búsqueda sencilla.
- * 
- * @param data Texto actual de búsqueda.
- * @param onValueChange Callback cuando el texto cambia.
- * @param modifier Modificador opcional para personalizar el componente.
- */
-@Composable
-fun SimpleSearchBar(
-    data: String,
-    onValueChange: (String) -> Unit,
-    modifier: Modifier = Modifier
-) {
-    TextField(
-        value = data,
-        onValueChange = onValueChange,
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(16.dp)
-            .height(56.dp)
-            .shadow(4.dp, MaterialTheme.shapes.extraLarge),
-        placeholder = {
-            Text(text = "Buscar mascotas por nombre...", color = Color.Gray)
-        },
-        leadingIcon = {
-            Icon(
-                Icons.Default.Search,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.primary
-            )
-        },
-        colors = TextFieldDefaults.colors(
-            focusedContainerColor = MaterialTheme.colorScheme.surface,
-            unfocusedContainerColor = MaterialTheme.colorScheme.surface,
-            disabledContainerColor = MaterialTheme.colorScheme.surface,
-            cursorColor = MaterialTheme.colorScheme.primary,
-            focusedIndicatorColor = Color.Transparent,
-            unfocusedIndicatorColor = Color.Transparent,
-        ),
-        shape = MaterialTheme.shapes.extraLarge,
-        singleLine = true
-    )
-}
 
 /**
  * Tarjeta que muestra un resumen de la información de una mascota.
@@ -169,11 +130,11 @@ fun PetCard(
     onAdoptClick: () -> Unit
 ) {
     Card(
+        onClick = onClick, // Usamos el parámetro onClick nativo de Card
         modifier = Modifier
             .fillMaxWidth()
             .height(320.dp)
-            .padding(horizontal = 16.dp, vertical = 8.dp)
-            .clickable { onClick() }, // Hacemos toda la tarjeta clickable para navegar
+            .padding(horizontal = 16.dp, vertical = 8.dp),
         shape = MaterialTheme.shapes.large,
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
@@ -248,6 +209,6 @@ fun PetCard(
 @Composable
 fun PetCardPreview() {
     PetAppTheme {
-        HomeScreen(onPetClick = {})
+        PetListScreen(onPetClick = {}, onBack = {})
     }
 }

@@ -12,7 +12,7 @@ import kotlinx.coroutines.flow.asStateFlow
  * Se encarga de cargar y gestionar la lista de mascotas para la pantalla principal,
  * incluyendo la funcionalidad de adopción.
  */
-class HomeViewModel : ViewModel() {
+class PetListViewModel : ViewModel() {
     // Estado interno que contiene la lista de mascotas actual
     private val _pets = MutableStateFlow<List<Pet>>(emptyList())
     // Estado público observable desde la UI
@@ -34,7 +34,7 @@ class HomeViewModel : ViewModel() {
     /**
      * Refresca la lista de mascotas desde el repositorio.
      * Útil para cuando volvemos de la pantalla de detalle y queremos asegurar
-     * que los cambios (como likes) se reflejan.
+     * que el estado de la lista está actualizado.
      */
     fun refreshPets() {
         // Forzamos una nueva emisión creando una copia de la lista para que StateFlow detecte el cambio
