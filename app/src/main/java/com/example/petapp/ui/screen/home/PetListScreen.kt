@@ -46,6 +46,7 @@ import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.filled.KeyboardArrowLeft
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.LaunchedEffect
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 
 /**
  * Pantalla principal que muestra la lista de todas las mascotas disponibles.
@@ -63,7 +64,7 @@ fun PetListScreen(
     viewModel: PetListViewModel = viewModel()
 ) {
     // Observamos la lista de mascotas desde el ViewModel
-    val pets by viewModel.pets.collectAsState()
+    val pets by viewModel.pets.collectAsStateWithLifecycle()
 
     // Refrescamos la lista al entrar a la pantalla para reflejar cambios
     LaunchedEffect(Unit) {

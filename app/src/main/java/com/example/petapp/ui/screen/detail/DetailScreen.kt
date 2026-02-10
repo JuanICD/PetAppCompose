@@ -1,8 +1,10 @@
 package com.example.petapp.ui.screen.detail
 
+import androidx.compose.foundation.gestures.detectTransformGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material3.*
@@ -10,10 +12,15 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -23,7 +30,7 @@ import coil.compose.AsyncImage
 /**
  * Pantalla de detalle de una mascota seleccionada.
  * Rediseñada para mostrar una imagen centrada estilo card y datos formateados debajo.
- * 
+ *
  * @param petName El nombre de la mascota a mostrar (usado como identificador).
  * @param onBack Función callback para volver a la pantalla anterior.
  * @param viewModel Instancia del ViewModel para gestionar el estado de esta pantalla.
@@ -49,13 +56,21 @@ fun DetailScreen(
                 title = { Text(text = pet?.name ?: "Detalle", fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(imageVector = Icons.Default.ArrowBack, contentDescription = "Volver")
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Volver"
+                        )
                     }
                 }
             )
         }
     ) { paddingValues ->
+        //Solo dibuja el contenido si hay datos de la mascota si no, muestra un indicador de carga
         pet?.let { petData ->
+
+            var scale by remember { mutableStateOf(1f) }
+            var offset by remember { mutableStateOf(Offset.Zero) }
+
             Column(
                 modifier = Modifier
                     .fillMaxSize()
@@ -68,7 +83,20 @@ fun DetailScreen(
                 Card(
                     modifier = Modifier
                         .size(280.dp)
-                        .shadow(12.dp, MaterialTheme.shapes.extraLarge),
+                        .shadow(12.dp, MaterialTheme.shapes.extraLarge)
+                        .pointerInput(Unit) {
+                            detectTransformGestures { _, pan, zoom, _ ->
+                                //Actualizar el zoom para que no sea infinito
+                                scale = (scale * zoom).coerceIn(0.9f, 1.1f)
+
+                                //Solo permite mover la imagen si tiene zoom
+                                if (scale > 1f) {
+                                    offset += pan
+                                }else{
+                                    offset = Offset.Zero // Para resetear la posicion
+                                }
+                            }
+                        },
                     shape = MaterialTheme.shapes.extraLarge,
                 ) {
                     AsyncImage(
@@ -92,7 +120,7 @@ fun DetailScreen(
                         fontWeight = FontWeight.ExtraBold,
                         color = MaterialTheme.colorScheme.primary
                     )
-                    
+
                     Text(
                         text = "${petData.race} • ${petData.age} años",
                         style = MaterialTheme.typography.headlineSmall,
