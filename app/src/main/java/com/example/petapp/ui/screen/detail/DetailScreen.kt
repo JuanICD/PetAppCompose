@@ -17,9 +17,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
@@ -84,6 +86,7 @@ fun DetailScreen(
                     modifier = Modifier
                         .size(280.dp)
                         .shadow(12.dp, MaterialTheme.shapes.extraLarge)
+                        .clipToBounds()
                         .pointerInput(Unit) {
                             detectTransformGestures { _, pan, zoom, _ ->
                                 //Actualizar el zoom para que no sea infinito
@@ -103,7 +106,14 @@ fun DetailScreen(
                         model = petData.imageRes,
                         contentDescription = "Foto de ${petData.name}",
                         contentScale = ContentScale.Crop,
-                        modifier = Modifier.fillMaxSize()
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .graphicsLayer(
+                                scaleX = scale,
+                                scaleY = scale,
+                                translationX = offset.x,
+                                translationY = offset.y
+                            )
                     )
                 }
 
