@@ -27,7 +27,8 @@ sealed class Routes(val route: String) {
 
 /**
  * Composable principal que gestiona la navegación de la aplicación utilizando NavHost.
- * Se ha eliminado el Navigation 3 y la barra de navegación inferior por requerimiento.
+ *
+ * @return Composición de la pantalla principal.
  */
 @Composable
 fun MainScaffold() {

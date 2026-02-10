@@ -54,7 +54,7 @@ object PetRepository {
     }
 
     /**
-     * Elimina una mascota de la lista (proceso de adopción).
+     * Elimina una mascota de la lista .
      * 
      * @param name Nombre de la mascota a eliminar.
      */

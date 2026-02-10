@@ -42,6 +42,8 @@ import coil.compose.AsyncImage
 import com.example.petapp.ui.theme.PetAppTheme
 
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
+import androidx.compose.material.icons.filled.KeyboardArrowLeft
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.LaunchedEffect
 
@@ -74,7 +76,7 @@ fun PetListScreen(
                 title = { Text(text = "Nuestras Mascotas", fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(imageVector = Icons.Default.ArrowBack, contentDescription = "Volver")
+                        Icon(imageVector = Icons.AutoMirrored.Filled.KeyboardArrowLeft, contentDescription = "Volver")
                     }
                 }
             )
