@@ -72,6 +72,20 @@ fun DetailScreen(
 
             var scale by remember { mutableStateOf(1f) }
             var offset by remember { mutableStateOf(Offset.Zero) }
+            var showDialog by remember { mutableStateOf(false) }
+
+            if (showDialog) {
+                AlertDialog(
+                    onDismissRequest = { showDialog = false },
+                    confirmButton = {
+                        TextButton(onClick = { showDialog = false }) {
+                            Text("Aceptar")
+                        }
+                    },
+                    title = { Text("Adopción") },
+                    text = { Text("perro ${petData.name} adoptado") }
+                )
+            }
 
             Column(
                 modifier = Modifier
@@ -182,7 +196,7 @@ fun DetailScreen(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Button(
-                        onClick = { /* Acción de adopción */ },
+                        onClick = { showDialog = true },
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(64.dp),
